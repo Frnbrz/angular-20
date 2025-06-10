@@ -1,52 +1,86 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, Signal, WritableSignal } from '@angular/core';
 import { Character } from '../models/character';
+import { of, Observable, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CharacterDataService {
-  mockCharacters: Character[] = [
-    {
-      id: 1,
-      name: 'Aragorn',
-      description: 'Heir of Isildur and King of Gondor.',
-    },
-    {
-      id: 2,
-      name: 'Legolas',
-      description: 'Elven prince and skilled archer.',
-    },
-    { id: 3, name: 'Gimli', description: 'Dwarf warrior and son of Glóin.' },
-  ];
+  private mockCharacters: Map<number, Character> = new Map([
+    [
+      1,
+      {
+        id: 1,
+        name: 'Aragorn',
+        description: 'Heir of Isildur and King of Gondor.',
+      },
+    ],
+    [
+      2,
+      {
+        id: 2,
+        name: 'Legolas',
+        description: 'Elven prince and skilled archer.',
+      },
+    ],
+    [
+      3,
+      {
+        id: 3,
+        name: 'Gimli',
+        description: 'Dwarf warrior and son of Glóin.',
+      },
+    ],
+  ]);
 
-  getCharacters() {
-    const characters: Character[] = this.mockCharacters;
-    return Promise.resolve(characters);
+  get charactersArray(): Character[] {
+    return Array.from(this.mockCharacters.values());
+  }
+
+  characters: WritableSignal<Character[]> = signal(this.charactersArray);
+
+  getCharacters(): Observable<Character[]> {
+    const characters: Character[] = this.charactersArray;
+    return of(characters);
   }
 
   getCharacterById(id: number) {
-    return this.mockCharacters.find((character) => character.id === id);
+    return this.mockCharacters.get(id);
   }
 
   addCharacter(character: Character) {
-    // Generate a new id (incremental)
-    const newId =
-      this.mockCharacters.length > 0
-        ? Math.max(...this.mockCharacters.map((c) => c.id)) + 1
-        : 1;
-    const newCharacter = { ...character, id: newId };
-    this.mockCharacters.push(newCharacter);
-    return newCharacter;
+    console.log(character);
+
+    this.mockCharacters.set(character.id, character);
+    this.characters.set(this.charactersArray);
+    return of(character);
   }
 
-  updateCharacter(updatedCharacter: Character) {
-    const index = this.mockCharacters.findIndex(
-      (c) => c.id === updatedCharacter.id
-    );
-    if (index !== -1) {
-      this.mockCharacters[index] = { ...updatedCharacter };
-      return this.mockCharacters[index];
+  updateCharacter(character: Character): Observable<Character> {
+    if (!this.mockCharacters.has(character.id)) {
+      return throwError(() => 'Character not found');
     }
-    return null;
+
+    this.mockCharacters.set(character.id, { ...character });
+    this.characters.set(this.charactersArray);
+    return of(character);
   }
+
+  deleteCharacter(id: number): Observable<Character> {
+    const deletedCharacter = this.mockCharacters.get(id);
+    if (!deletedCharacter) {
+      return throwError(() => 'Character not found');
+    }
+    this.mockCharacters.delete(id);
+    this.characters.set(this.charactersArray);
+    return of(deletedCharacter);
+  }
+
+  getNextId(): number {
+    return this.mockCharacters.size > 0
+      ? Math.max(...Array.from(this.mockCharacters.keys())) + 1
+      : 1;
+  }
+
+  getCharacterWithSignal;
 }
