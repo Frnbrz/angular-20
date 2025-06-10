@@ -82,5 +82,5 @@ export class CharacterDataService {
       : 1;
   }
 
-  getCharacterWithSignal;
+  // getCharacterWithSignal;
 }
