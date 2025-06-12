@@ -1,11 +1,13 @@
 import { Injectable, signal, Signal, WritableSignal } from '@angular/core';
-import { Character } from '../models/character';
+import { Character, RickAndMorti } from '../models/character';
 import { of, Observable, throwError } from 'rxjs';
+import { httpResource } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CharacterDataService {
+  private baseurl = 'https://rickandmortyapi.com/api';
   private mockCharacters: Map<number, Character> = new Map([
     [
       1,
@@ -49,8 +51,6 @@ export class CharacterDataService {
   }
 
   addCharacter(character: Character) {
-    console.log(character);
-
     this.mockCharacters.set(character.id, character);
     this.characters.set(this.charactersArray);
     return of(character);
@@ -82,5 +82,9 @@ export class CharacterDataService {
       : 1;
   }
 
-  // getCharacterWithSignal;
+  getCharacterWithSignal(id: Signal<number>) {
+    return httpResource<RickAndMorti>(
+      () => `${this.baseurl}/character/${id()}`
+    );
+  }
 }

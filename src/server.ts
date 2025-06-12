@@ -6,6 +6,7 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+import { app as apiApp } from './api/index';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -24,11 +25,8 @@ const angularApp = new AngularNodeAppEngine();
  * ```
  */
 
-app.get('/api/hola', (req, res) => {
-  res.status(200).json({
-    message: 'hola',
-  });
-});
+// API
+app.use(apiApp);
 
 /**
  * Serve static files from /browser
